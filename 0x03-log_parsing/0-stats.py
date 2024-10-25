@@ -1,51 +1,37 @@
 #!/usr/bin/python3
+'''a script that reads stdin line by line and computes metrics'''
+
+
 import sys
 
-# Initialize variables
+cache = {'200': 0, '301': 0, '400': 0, '401': 0,
+         '403': 0, '404': 0, '405': 0, '500': 0}
 total_size = 0
-status_counts = {}
-line_count = 0
-status_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
+counter = 0
 
 try:
     for line in sys.stdin:
-        line_count += 1
-        parts = line.split()
-        
-        # Validate format and parse parts of the line
-        if len(parts) < 7:
-            continue
-        ip, dash, date, method, path, protocol, status_code, file_size = parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]
-        
-        # Update total file size
-        try:
-            total_size += int(file_size)
-        except ValueError:
-            continue
-        
-        # Update status code count
-        if status_code in status_codes:
-            if status_code in status_counts:
-                status_counts[status_code] += 1
-            else:
-                status_counts[status_code] = 1
+        line_list = line.split(" ")
+        if len(line_list) > 4:
+            code = line_list[-2]
+            size = int(line_list[-1])
+            if code in cache.keys():
+                cache[code] += 1
+            total_size += size
+            counter += 1
 
-        # Print metrics after every 10 lines
-        if line_count % 10 == 0:
-            print("File size:", total_size)
-            for code in sorted(status_counts.keys()):
-                print(f"{code}: {status_counts[code]}")
+        if counter == 10:
+            counter = 0
+            print('File size: {}'.format(total_size))
+            for key, value in sorted(cache.items()):
+                if value != 0:
+                    print('{}: {}'.format(key, value))
 
-except KeyboardInterrupt:
-    # Print metrics upon keyboard interruption
-    print("\nFile size:", total_size)
-    for code in sorted(status_counts.keys()):
-        print(f"{code}: {status_counts[code]}")
-    raise
+except Exception as err:
+    pass
 
-# Final output if script ends naturally
 finally:
-    print("File size:", total_size)
-    for code in sorted(status_counts.keys()):
-        print(f"{code}: {status_counts[code]}")
-
+    print('File size: {}'.format(total_size))
+    for key, value in sorted(cache.items()):
+        if value != 0:
+            print('{}: {}'.format(key, value))i
